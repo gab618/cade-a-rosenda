@@ -42,7 +42,7 @@ export const Footer = styled.footer`
     margin: 0 3px;
     height: 18px;
     width: 18px;
-    color: #ff3432;
+    color: #fff;
     animation: 0.8s ${pulseAnimation} infinite ease-out;
   }
 `;
