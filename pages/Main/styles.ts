@@ -8,7 +8,7 @@ export const Content = styled.header`
   height: 100%;
 
   h2 {
-    font-size: 64px;
+    font-size: 56px;
     font-weight: 400;
   }
   h1 {
