@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { differenceInDays } from "date-fns";
 import styled from "styled-components";
@@ -15,11 +16,21 @@ const Content = styled.header`
     font-size: 56px;
     font-weight: 400;
   }
+
   h1 {
     font-size: 80px;
     font-weight: 700;
     white-space: nowrap;
     margin-bottom: 16px;
+  }
+
+  a {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    padding: 16px;
+    font-size: 24px;
+    cursor: pointer;
   }
 
   @media (max-width: 600px) {
@@ -73,6 +84,7 @@ export default function Main() {
         isPaused={false}
         speed={0.6}
       />
+      <Link href="/schedule">📅</Link>
     </Content>
   );
 }
