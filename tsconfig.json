@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": false,
@@ -21,9 +17,16 @@
   "include": [
     "next-env.d.ts",
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    "components/BaseLayout/index.jsx",
+    "components/BaseLayout/styles.js",
+    "components/Calendar/index.jsx",
+    "components/Calendar/styles.js",
+    "pages/Main/index.jsx",
+    "pages/_app.jsx",
+    "pages/_document.jsx",
+    "pages/index.jsx",
+    "pages/schedule.jsx"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }
