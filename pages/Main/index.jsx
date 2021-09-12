@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { differenceInDays } from "date-fns";
 import styled from "styled-components";
 import Lottie from "react-lottie";
 import nurse from "../../lotties/super-nurse-animation.json";
@@ -44,22 +42,7 @@ const Content = styled.header`
   }
 `;
 
-export default function Main({ schedule }) {
-  const [currentDateTime, setCurrentDateTime] = useState(new Date());
-  const [cachoeirinhaFirstDay] = useState(new Date(2021, 7, 14));
-  const [days, setDays] = useState(0);
-  const [hospital, setHospital] = useState("");
-  const [dayOff, setDayOff] = useState(false);
-
-  const isToday = (someDate) => {
-    const today = new Date();
-    return (
-      someDate.getDate() == today.getDate() &&
-      someDate.getMonth() == today.getMonth() &&
-      someDate.getFullYear() == today.getFullYear()
-    );
-  };
-
+export default function Main({ hospital, dayOff }) {
   function lottieOptions(data) {
     return {
       loop: true,
@@ -70,28 +53,6 @@ export default function Main({ schedule }) {
       },
     };
   }
-
-  useEffect(() => {
-    setDays(differenceInDays(currentDateTime, cachoeirinhaFirstDay));
-  }, [currentDateTime, cachoeirinhaFirstDay]);
-
-  useEffect(() => {
-    if (days % 2 === 0) {
-      setHospital("Cachoeirinha");
-    } else {
-      setHospital("Pirituba");
-    }
-  }, [days]);
-
-  useEffect(() => {
-    console.log(schedule);
-    for (let day of schedule) {
-      const today = isToday(new Date(`${day}T12:00`));
-      if (today) {
-        setDayOff(true);
-      }
-    }
-  }, [hospital]);
 
   return (
     <Content>
