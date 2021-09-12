@@ -1,4 +1,6 @@
 import { createGlobalStyle, ThemeProvider } from "styled-components";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const GlobalStyle = createGlobalStyle`
    * {
@@ -34,6 +36,16 @@ export default function App({ Component, pageProps }) {
   return (
     <>
       <GlobalStyle />
+      <ToastContainer
+        position="top-right"
+        autoClose={8000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        draggable={false}
+        pauseOnVisibilityChange
+        closeOnClick
+        pauseOnHover
+      />
       <ThemeProvider theme={theme}>
         <Component {...pageProps} />
       </ThemeProvider>
