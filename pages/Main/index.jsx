@@ -10,6 +10,7 @@ const Content = styled.header`
   align-items: center;
   justify-content: center;
   height: 100%;
+  width: 100%;
 
   h2 {
     font-size: 56px;
@@ -19,7 +20,6 @@ const Content = styled.header`
   h1 {
     font-size: 80px;
     font-weight: 700;
-    white-space: nowrap;
     margin-bottom: 16px;
   }
 
