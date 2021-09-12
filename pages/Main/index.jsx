@@ -4,6 +4,7 @@ import { differenceInDays } from "date-fns";
 import styled from "styled-components";
 import Lottie from "react-lottie";
 import nurse from "../../lotties/super-nurse-animation.json";
+import restingGirl from "../../lotties/resting.json";
 
 const Content = styled.header`
   display: flex;
@@ -43,11 +44,21 @@ const Content = styled.header`
   }
 `;
 
-export default function Main() {
+export default function Main({ schedule }) {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [cachoeirinhaFirstDay] = useState(new Date(2021, 7, 14));
   const [days, setDays] = useState(0);
   const [hospital, setHospital] = useState("");
+  const [dayOff, setDayOff] = useState(false);
+
+  const isToday = (someDate) => {
+    const today = new Date();
+    return (
+      someDate.getDate() == today.getDate() &&
+      someDate.getMonth() == today.getMonth() &&
+      someDate.getFullYear() == today.getFullYear()
+    );
+  };
 
   function lottieOptions(data) {
     return {
@@ -72,12 +83,22 @@ export default function Main() {
     }
   }, [days]);
 
+  useEffect(() => {
+    console.log(schedule);
+    for (let day of schedule) {
+      const today = isToday(new Date(`${day}T12:00`));
+      if (today) {
+        setDayOff(true);
+      }
+    }
+  }, [hospital]);
+
   return (
     <Content>
       <h2>Hoje Rosenda está no</h2>
-      <h1>{hospital}</h1>
+      <h1>{dayOff ? "conforto do lar" : hospital}</h1>
       <Lottie
-        options={lottieOptions(nurse)}
+        options={lottieOptions(dayOff ? restingGirl : nurse)}
         height={300}
         width={300}
         isStopped={false}

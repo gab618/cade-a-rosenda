@@ -12,23 +12,30 @@ function Calendar() {
   const [password, setPassword] = useState("");
 
   async function handleSubmit() {
-    const daysOff = values.map((date) => {
-      return `${date.year}/${String(date.month.index + 1).padStart(
-        2,
-        "0"
-      )}/${String(date.day).padStart(2, "0")}`;
-    });
+    if (values.length > 0) {
+      const daysOff = values
+        .map((date) => {
+          if (values[0].month.index === date.month.index) {
+            return `${date.year}-${String(date.month.index + 1).padStart(
+              2,
+              "0"
+            )}-${String(date.day).padStart(2, "0")}`;
+          }
+        })
+        .filter((x) => x);
 
-    const id = `${values[0].year}-${String(values[0].month.index + 1).padStart(
-      2,
-      "0"
-    )}`;
+      const id = `${values[0].year}-${String(
+        values[0].month.index + 1
+      ).padStart(2, "0")}`;
 
-    try {
-      await api.post("schedule", { id, daysOff, password });
-      toast.success("Escala atualizada com sucesso");
-    } catch (err) {
-      toast.error("Error ao atualizar escala :/");
+      try {
+        const response = await api.post("schedule", { id, daysOff, password });
+        toast.success("Escala atualizada com sucesso");
+      } catch (err) {
+        toast.error("Error ao atualizar escala :/");
+      }
+    } else {
+      toast.error("Por favor selecione alguma data");
     }
   }
 
