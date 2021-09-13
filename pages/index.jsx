@@ -26,10 +26,6 @@ export async function getServerSideProps() {
   const formattedDate = format(currentDateTime, "yyyy-MM-dd");
   const dayOff = schedule.includes(formattedDate);
 
-  console.log(schedule);
-  console.log(formattedDate);
-  console.log(dayOff);
-
   return {
     props: {
       schedule,

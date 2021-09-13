@@ -7,26 +7,20 @@ import DatePickerButton from "react-multi-date-picker/components/icon";
 import { Container, Button, Input, ArrowWrapper } from "./styles";
 import api from "../../services/api";
 
-function Calendar() {
-  const [values, setValues] = useState([]);
+function Calendar({ daysOff }) {
+  const [values, setValues] = useState(daysOff);
   const [password, setPassword] = useState("");
 
   async function handleSubmit() {
     if (values.length > 0) {
-      const daysOff = values
-        .map((date) => {
-          if (values[0].month.index === date.month.index) {
-            return `${date.year}-${String(date.month.index + 1).padStart(
-              2,
-              "0"
-            )}-${String(date.day).padStart(2, "0")}`;
-          }
-        })
-        .filter((x) => x);
+      const daysOff = values.map((date) => {
+        return `${date.year}-${String(date.month.index + 1).padStart(
+          2,
+          "0"
+        )}-${String(date.day).padStart(2, "0")}`;
+      });
 
-      const id = `${values[0].year}-${String(
-        values[0].month.index + 1
-      ).padStart(2, "0")}`;
+      const id = String(new Date().getFullYear());
 
       try {
         const response = await api.post("schedule", { id, daysOff, password });
