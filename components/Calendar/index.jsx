@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import DatePicker from "react-multi-date-picker";
 import { toast } from "react-toastify";
@@ -7,9 +7,18 @@ import DatePickerButton from "react-multi-date-picker/components/icon";
 import { Container, Button, Input, ArrowWrapper } from "./styles";
 import api from "../../services/api";
 
-function Calendar({ daysOff }) {
-  const [values, setValues] = useState(daysOff);
+function Calendar() {
+  const [values, setValues] = useState([]);
   const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    async function getSchedule() {
+      const year = new Date().getFullYear();
+      const response = await api.get(`schedule/${year}`);
+      setValues(response.data.daysOff);
+    }
+    getSchedule();
+  }, []);
 
   async function handleSubmit() {
     if (values.length > 0) {
