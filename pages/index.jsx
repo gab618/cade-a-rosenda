@@ -15,13 +15,8 @@ export async function getServerSideProps() {
     hospital = "Pirituba";
   }
 
-  const response = await api.get("schedule");
-  let schedule = [];
-
-  response.data.forEach((month) => {
-    const { daysOff } = month;
-    schedule = [...schedule, ...daysOff];
-  });
+  const response = await api.get(`schedule/${currentDateTime.getFullYear()}`);
+  let schedule = response.data.daysOff;
 
   const formattedDate = format(currentDateTime, "yyyy-MM-dd");
   const dayOff = schedule.includes(formattedDate);
