@@ -4,6 +4,7 @@ import Main from "./Main";
 import api from "../services/api";
 
 export async function getServerSideProps() {
+  process.env.TZ = "America/Sao_Paulo";
   const currentDateTime = new Date();
   const cachoeirinhaFirstDay = new Date(2021, 7, 14);
   const days = differenceInDays(currentDateTime, cachoeirinhaFirstDay);
