@@ -17,7 +17,7 @@ export async function getServerSideProps() {
   }
 
   const response = await api.get(`schedule/${currentDateTime.getFullYear()}`);
-  let schedule = response.data.daysOff;
+  let schedule = response.data.daysOff || [];
 
   const formattedDate = format(currentDateTime, "yyyy-MM-dd");
   const dayOff = schedule.includes(formattedDate);
