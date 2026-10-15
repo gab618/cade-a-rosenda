@@ -225,8 +225,8 @@ function Calendar() {
           const kind = isScheduledOff(key)
             ? "scheduled"
             : daysOff.includes(key)
-            ? "extra"
-            : "work";
+              ? "extra"
+              : "work";
           return (
             <Day
               key={key}
@@ -239,13 +239,12 @@ function Calendar() {
               aria-pressed={kind === "extra"}
               aria-label={`${format(date, "d 'de' MMMM", {
                 locale: ptBR,
-              })}: ${
-                kind === "work"
+              })}: ${kind === "work"
                   ? "plantão"
                   : kind === "extra"
-                  ? "folga extra"
-                  : "folga da escala"
-              }`}
+                    ? "folga"
+                    : "descanso"
+                }`}
             >
               {date.getDate()}
               {kind === "extra" && <small>🌴</small>}
@@ -259,10 +258,10 @@ function Calendar() {
           <Swatch $kind="work" /> Plantão
         </span>
         <span>
-          <Swatch $kind="scheduled" /> Folga da escala
+          <Swatch $kind="scheduled" /> Descanso
         </span>
         <span>
-          <Swatch $kind="extra" /> Folga extra
+          <Swatch $kind="extra" /> Folga
         </span>
       </Legend>
 
