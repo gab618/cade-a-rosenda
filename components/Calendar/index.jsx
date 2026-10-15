@@ -201,7 +201,7 @@ function Calendar({ mode = "daysOff" }) {
               {date.getDate()}
               {(kind === "extra" || brasilia) && (
                 <small>
-                  {kind === "extra" && "🌴"}
+                  {kind === "extra" && "☀️"}
                   {brasilia && "✈️"}
                   {conflict && "⚠️"}
                 </small>
