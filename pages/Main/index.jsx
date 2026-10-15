@@ -1,8 +1,13 @@
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import styled from "styled-components";
-import Lottie from "react-lottie";
 import nurse from "../../lotties/super-nurse-animation.json";
 import restingGirl from "../../lotties/resting.json";
+
+const Lottie = dynamic(
+  () => import("lottie-react").then((module) => module.Lottie),
+  { ssr: false }
+);
 
 const Content = styled.header`
   display: flex;
@@ -43,28 +48,17 @@ const Content = styled.header`
 `;
 
 export default function Main({ hospital, dayOff }) {
-  function lottieOptions(data) {
-    return {
-      loop: true,
-      autoplay: true,
-      animationData: data,
-      rendererSettings: {
-        preserveAspectRatio: "xMidYMid slice",
-      },
-    };
-  }
-
   return (
     <Content>
       <h2>Hoje Rosenda está no</h2>
       <h1>{dayOff ? "conforto do lar" : hospital}</h1>
       <Lottie
-        options={lottieOptions(dayOff ? restingGirl : nurse)}
-        height={300}
-        width={300}
-        isStopped={false}
-        isPaused={false}
+        src={dayOff ? restingGirl : nurse}
+        loop
+        autoplay
         speed={0.6}
+        rendererSettings={{ preserveAspectRatio: "xMidYMid slice" }}
+        style={{ height: 300, width: 300 }}
       />
       <Link href="/schedule">📅</Link>
     </Content>
