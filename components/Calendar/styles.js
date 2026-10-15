@@ -120,6 +120,16 @@ export const Day = styled.button`
       cursor: default;
     `}
 
+  ${({ $brasilia }) =>
+    $brasilia &&
+    css`
+      border: 3px solid #1e90ff;
+    `}
+
+  &:disabled {
+    cursor: default;
+  }
+
   ${({ $past }) =>
     $past &&
     css`
@@ -175,6 +185,31 @@ export const Swatch = styled.i`
       background: rgba(255, 255, 255, 0.12);
       border: 1px dashed rgba(255, 255, 255, 0.6);
     `}
+  ${({ $kind }) =>
+    $kind === "brasilia" &&
+    css`
+      border: 3px solid #1e90ff;
+    `}
+`;
+
+export const Warning = styled.p`
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.2);
+`;
+
+export const CornerLink = styled.span`
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  padding: 16px;
+  font-size: 24px;
+  cursor: pointer;
+  color: #fff;
+  opacity: ${({ $faded }) => ($faded ? 0.35 : 1)};
 `;
 
 export const StatusRow = styled.div`

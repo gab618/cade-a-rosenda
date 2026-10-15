@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   addMonths,
@@ -14,18 +14,22 @@ import {
   MdArrowBack,
   MdChevronLeft,
   MdChevronRight,
+  MdFlight,
   MdRefresh,
+  MdEvent,
 } from "react-icons/md";
 import {
+  isBrasiliaConflict,
   isScheduledOff,
-  sanitizeDaysOff,
   toDateKey,
   todayKeyInSaoPaulo,
 } from "../../lib/schedule";
+import useSchedule from "./useSchedule";
 import {
   ArrowWrapper,
   Button,
   Container,
+  CornerLink,
   Day,
   Empty,
   Grid,
@@ -38,13 +42,30 @@ import {
   Status,
   StatusRow,
   Swatch,
+  Warning,
   WeekDay,
 } from "./styles";
 
-const CACHE_KEY = "rosenda:daysOff";
-const PIN_KEY = "rosenda:pin";
-const SAVE_DELAY_MS = 1000;
 const WEEK_DAYS = ["D", "S", "T", "Q", "Q", "S", "S"];
+
+const MODES = {
+  // Tela da Rosenda: marca folgas extras.
+  daysOff: {
+    pinKey: "rosenda:pin",
+    title: "Folgas da Rosenda",
+    hint: "Toque num dia de plantão para marcar folga",
+    needPin: "Digite o PIN para salvar as folgas",
+    requirePinUpfront: false,
+  },
+  // Tela de admin: marca dias em Brasília.
+  brasilia: {
+    pinKey: "rosenda:adminPin",
+    title: "Dias em Brasília",
+    hint: "Toque num dia para marcar/desmarcar Brasília",
+    needPin: "Digite o PIN de admin",
+    requirePinUpfront: true,
+  },
+};
 
 const STATUS_TEXT = {
   loading: "Carregando…",
@@ -55,165 +76,62 @@ const STATUS_TEXT = {
   pending: "Alterações não salvas…",
   offline: "Sem conexão — salvo neste aparelho, sincroniza depois",
   error: "Erro ao salvar — tentando de novo depois",
-  needPin: "Digite o PIN para salvar as folgas",
 };
 
-function readCache() {
-  try {
-    const raw = JSON.parse(localStorage.getItem(CACHE_KEY));
-    return raw
-      ? { daysOff: sanitizeDaysOff(raw.daysOff), dirty: !!raw.dirty }
-      : null;
-  } catch {
-    return null;
-  }
-}
+const KIND_LABEL = { work: "plantão", extra: "folga", scheduled: "descanso" };
 
-function writeCache(daysOff, dirty) {
-  localStorage.setItem(CACHE_KEY, JSON.stringify({ daysOff, dirty }));
-}
+function Calendar({ mode = "daysOff" }) {
+  const config = MODES[mode];
+  const { schedule, status, hasPin, toggle, pull, hasPending, submitPin } =
+    useSchedule(mode, config.pinKey);
 
-function Calendar() {
   const [today, setToday] = useState(null);
   const [month, setMonth] = useState(null);
-  const [daysOff, setDaysOff] = useState([]);
-  const [status, setStatus] = useState("loading");
   const [pinInput, setPinInput] = useState("");
 
-  const daysOffRef = useRef(daysOff);
-  const saveTimer = useRef(null);
-
-  const save = useCallback(async () => {
-    clearTimeout(saveTimer.current);
-    saveTimer.current = null;
-
-    const pin = localStorage.getItem(PIN_KEY);
-    if (!pin) {
-      setStatus("needPin");
-      return;
-    }
-
-    setStatus("saving");
-    try {
-      const res = await fetch("/api/schedule", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", "x-schedule-pin": pin },
-        body: JSON.stringify({ daysOff: daysOffRef.current }),
-      });
-      if (res.status === 401) {
-        localStorage.removeItem(PIN_KEY);
-        setStatus("needPin");
-        return;
-      }
-      if (!res.ok) throw new Error(String(res.status));
-      writeCache(daysOffRef.current, false);
-      setStatus("saved");
-    } catch {
-      setStatus(navigator.onLine ? "error" : "offline");
-    }
-  }, []);
-
-  // Busca do gist e sobrescreve o estado local.
-  const pull = useCallback(async () => {
-    clearTimeout(saveTimer.current);
-    saveTimer.current = null;
-    setStatus("pulling");
-    try {
-      const res = await fetch("/api/schedule", { cache: "no-store" });
-      if (!res.ok) throw new Error(String(res.status));
-      const clean = sanitizeDaysOff((await res.json()).daysOff);
-      daysOffRef.current = clean;
-      setDaysOff(clean);
-      writeCache(clean, false);
-      setStatus("saved");
-    } catch {
-      setStatus(navigator.onLine ? "pullError" : "offline");
-    }
-  }, []);
-
-  // Carrega cache local na hora e depois sincroniza com o servidor.
   useEffect(() => {
     const todayKey = todayKeyInSaoPaulo();
     setToday(todayKey);
     setMonth(startOfMonth(parseISO(todayKey)));
+  }, []);
 
-    const cache = readCache();
-    if (cache) {
-      daysOffRef.current = cache.daysOff;
-      setDaysOff(cache.daysOff);
-    }
+  const cells = useMemo(() => {
+    if (!month) return [];
+    const days = eachDayOfInterval({ start: month, end: endOfMonth(month) });
+    const leading = Array.from({ length: getDay(month) }, () => null);
+    return [...leading, ...days];
+  }, [month]);
 
-    if (cache?.dirty) {
-      // Tem alteração local que não chegou ao servidor: envia.
-      save();
-      return;
-    }
+  const conflicts = useMemo(
+    () =>
+      cells
+        .filter(Boolean)
+        .map(toDateKey)
+        .filter((key) => isBrasiliaConflict(key, schedule)),
+    [cells, schedule]
+  );
 
-    pull();
-  }, [save, pull]);
+  const locked = config.requirePinUpfront && !hasPin;
+  const showPinForm = status === "needPin" || locked;
 
   function handlePull() {
-    const hasPending = saveTimer.current || readCache()?.dirty;
     if (
-      hasPending &&
+      hasPending() &&
       !window.confirm(
         "Há alterações não salvas neste aparelho. Descartar e baixar a versão salva?"
       )
     ) {
       return;
     }
-    pull();
-  }
-
-  // Quando voltar a conexão, tenta enviar pendências.
-  useEffect(() => {
-    function onOnline() {
-      if (readCache()?.dirty) save();
-    }
-    window.addEventListener("online", onOnline);
-    return () => window.removeEventListener("online", onOnline);
-  }, [save]);
-
-  // Ao sair da página com save pendente, envia na hora.
-  useEffect(
-    () => () => {
-      if (saveTimer.current) save();
-    },
-    [save]
-  );
-
-  function toggle(key) {
-    if (isScheduledOff(key)) return;
-    const next = daysOffRef.current.includes(key)
-      ? daysOffRef.current.filter((d) => d !== key)
-      : sanitizeDaysOff([...daysOffRef.current, key]);
-
-    daysOffRef.current = next;
-    setDaysOff(next);
-    writeCache(next, true);
-    setStatus("pending");
-
-    clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(save, SAVE_DELAY_MS);
+    pull({ discard: true });
   }
 
   function handlePinSubmit(e) {
     e.preventDefault();
     if (!pinInput) return;
-    localStorage.setItem(PIN_KEY, pinInput);
+    submitPin(pinInput);
     setPinInput("");
-    save();
   }
-
-  const cells = useMemo(() => {
-    if (!month) return [];
-    const days = eachDayOfInterval({
-      start: month,
-      end: endOfMonth(month),
-    });
-    const leading = Array.from({ length: getDay(month) }, () => null);
-    return [...leading, ...days];
-  }, [month]);
 
   if (!month) {
     return (
@@ -225,8 +143,8 @@ function Calendar() {
 
   return (
     <Container>
-      <h1>Folgas da Rosenda</h1>
-      <Hint>Toque num dia de plantão para marcar folga extra</Hint>
+      <h1>{config.title}</h1>
+      <Hint>{config.hint}</Hint>
 
       <MonthHeader>
         <button
@@ -255,30 +173,39 @@ function Calendar() {
           const key = toDateKey(date);
           const kind = isScheduledOff(key)
             ? "scheduled"
-            : daysOff.includes(key)
+            : schedule.daysOff.includes(key)
               ? "extra"
               : "work";
+          const brasilia = schedule.brasilia.includes(key);
+          const conflict = brasilia && kind === "work";
+          const disabled =
+            locked || (mode === "daysOff" && kind === "scheduled");
+
           return (
             <Day
               key={key}
               type="button"
               $kind={kind}
+              $brasilia={brasilia}
               $today={key === today}
               $past={key < today}
-              disabled={kind === "scheduled"}
+              disabled={disabled}
               onClick={() => toggle(key)}
-              aria-pressed={kind === "extra"}
-              aria-label={`${format(date, "d 'de' MMMM", {
-                locale: ptBR,
-              })}: ${kind === "work"
-                  ? "plantão"
-                  : kind === "extra"
-                    ? "folga"
-                    : "descanso"
-                }`}
+              aria-pressed={mode === "brasilia" ? brasilia : kind === "extra"}
+              aria-label={`${format(date, "d 'de' MMMM", { locale: ptBR })}: ${
+                KIND_LABEL[kind]
+              }${brasilia ? ", Brasília" : ""}${
+                conflict ? " (atenção: plantão)" : ""
+              }`}
             >
               {date.getDate()}
-              {kind === "extra" && <small>🌴</small>}
+              {(kind === "extra" || brasilia) && (
+                <small>
+                  {kind === "extra" && "🌴"}
+                  {brasilia && "✈️"}
+                  {conflict && "⚠️"}
+                </small>
+              )}
             </Day>
           );
         })}
@@ -294,23 +221,35 @@ function Calendar() {
         <span>
           <Swatch $kind="extra" /> Folga
         </span>
+        <span>
+          <Swatch $kind="brasilia" /> Brasília
+        </span>
       </Legend>
 
+      {conflicts.length > 0 && (
+        <Warning>
+          ⚠️ Brasília em dia de plantão:{" "}
+          {conflicts.map((k) => Number(k.slice(-2))).join(", ")}
+        </Warning>
+      )}
+
       <StatusRow>
-        <Status>{STATUS_TEXT[status]}</Status>
+        <Status>
+          {showPinForm ? config.needPin : STATUS_TEXT[status]}
+        </Status>
         <RefreshButton
           type="button"
           onClick={handlePull}
           disabled={status === "pulling" || status === "saving"}
           $spinning={status === "pulling"}
-          aria-label="Baixar folgas salvas"
-          title="Baixar folgas salvas"
+          aria-label="Baixar dados salvos"
+          title="Baixar dados salvos"
         >
           <MdRefresh />
         </RefreshButton>
       </StatusRow>
 
-      {status === "needPin" && (
+      {showPinForm && (
         <PinForm onSubmit={handlePinSubmit}>
           <Input
             type="password"
@@ -320,8 +259,24 @@ function Calendar() {
             onChange={(e) => setPinInput(e.target.value)}
             autoFocus
           />
-          <Button type="submit">Salvar</Button>
+          <Button type="submit">
+            {config.requirePinUpfront ? "Entrar" : "Salvar"}
+          </Button>
         </PinForm>
+      )}
+
+      {mode === "daysOff" ? (
+        <Link href="/admin" aria-label="Dias em Brasília (admin)">
+          <CornerLink $faded>
+            <MdFlight />
+          </CornerLink>
+        </Link>
+      ) : (
+        <Link href="/schedule" aria-label="Folgas">
+          <CornerLink>
+            <MdEvent />
+          </CornerLink>
+        </Link>
       )}
 
       <Link href="/">
