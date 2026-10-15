@@ -1,9 +1,7 @@
-const withPWA = require("next-pwa");
-
-module.exports = withPWA({
-  pwa: {
-    dest: "public",
-    register: true,
-    skipWaiting: true,
-  },
+const withSerwist = require("@serwist/next").default({
+  swSrc: "service-worker.ts",
+  swDest: "public/sw.js",
+  register: true,
 });
+
+module.exports = withSerwist({});
