@@ -13,6 +13,7 @@ export default async function handler(req, res) {
   try {
     if (req.method === "GET") {
       const daysOff = await readDaysOff();
+      res.setHeader("Cache-Control", "no-store");
       return res.status(200).json({ daysOff });
     }
 

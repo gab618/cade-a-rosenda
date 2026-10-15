@@ -10,7 +10,12 @@ import {
   startOfMonth,
 } from "date-fns";
 import ptBR from "date-fns/locale/pt-BR";
-import { MdArrowBack, MdChevronLeft, MdChevronRight } from "react-icons/md";
+import {
+  MdArrowBack,
+  MdChevronLeft,
+  MdChevronRight,
+  MdRefresh,
+} from "react-icons/md";
 import {
   isScheduledOff,
   sanitizeDaysOff,
@@ -29,7 +34,9 @@ import {
   Legend,
   MonthHeader,
   PinForm,
+  RefreshButton,
   Status,
+  StatusRow,
   Swatch,
   WeekDay,
 } from "./styles";
@@ -41,6 +48,8 @@ const WEEK_DAYS = ["D", "S", "T", "Q", "Q", "S", "S"];
 
 const STATUS_TEXT = {
   loading: "Carregando…",
+  pulling: "Atualizando…",
+  pullError: "Não foi possível atualizar",
   saving: "Salvando…",
   saved: "Tudo salvo ✓",
   pending: "Alterações não salvas…",
@@ -104,6 +113,24 @@ function Calendar() {
     }
   }, []);
 
+  // Busca do gist e sobrescreve o estado local.
+  const pull = useCallback(async () => {
+    clearTimeout(saveTimer.current);
+    saveTimer.current = null;
+    setStatus("pulling");
+    try {
+      const res = await fetch("/api/schedule", { cache: "no-store" });
+      if (!res.ok) throw new Error(String(res.status));
+      const clean = sanitizeDaysOff((await res.json()).daysOff);
+      daysOffRef.current = clean;
+      setDaysOff(clean);
+      writeCache(clean, false);
+      setStatus("saved");
+    } catch {
+      setStatus(navigator.onLine ? "pullError" : "offline");
+    }
+  }, []);
+
   // Carrega cache local na hora e depois sincroniza com o servidor.
   useEffect(() => {
     const todayKey = todayKeyInSaoPaulo();
@@ -122,17 +149,21 @@ function Calendar() {
       return;
     }
 
-    fetch("/api/schedule")
-      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
-      .then(({ daysOff: remote }) => {
-        const clean = sanitizeDaysOff(remote);
-        daysOffRef.current = clean;
-        setDaysOff(clean);
-        writeCache(clean, false);
-        setStatus("saved");
-      })
-      .catch(() => setStatus(cache ? "offline" : "error"));
-  }, [save]);
+    pull();
+  }, [save, pull]);
+
+  function handlePull() {
+    const hasPending = saveTimer.current || readCache()?.dirty;
+    if (
+      hasPending &&
+      !window.confirm(
+        "Há alterações não salvas neste aparelho. Descartar e baixar a versão salva?"
+      )
+    ) {
+      return;
+    }
+    pull();
+  }
 
   // Quando voltar a conexão, tenta enviar pendências.
   useEffect(() => {
@@ -265,7 +296,19 @@ function Calendar() {
         </span>
       </Legend>
 
-      <Status>{STATUS_TEXT[status]}</Status>
+      <StatusRow>
+        <Status>{STATUS_TEXT[status]}</Status>
+        <RefreshButton
+          type="button"
+          onClick={handlePull}
+          disabled={status === "pulling" || status === "saving"}
+          $spinning={status === "pulling"}
+          aria-label="Baixar folgas salvas"
+          title="Baixar folgas salvas"
+        >
+          <MdRefresh />
+        </RefreshButton>
+      </StatusRow>
 
       {status === "needPin" && (
         <PinForm onSubmit={handlePinSubmit}>
