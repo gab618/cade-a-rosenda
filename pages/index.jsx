@@ -1,32 +1,29 @@
-import { differenceInDays, format } from "date-fns";
 import BaseLayout from "../components/BaseLayout";
 import Main from "./Main";
-import api from "../services/api";
+import { readDaysOff } from "../lib/gist";
+import { isDayOff, todayKeyInSaoPaulo } from "../lib/schedule";
 
 export async function getServerSideProps() {
-  process.env.TZ = "America/Sao_Paulo";
-  const currentDateTime = new Date();
-  const piritubaDay = new Date(2021, 7, 15);
-  const days = differenceInDays(currentDateTime, piritubaDay);
   const hospital = "Pirituba";
-  const isPiritubaDay = days % 2 === 1;
+  const today = todayKeyInSaoPaulo();
 
-  const response = await api.get(`schedule/${currentDateTime.getFullYear()}`);
-  let schedule = response.data.daysOff || [];
-
-  const formattedDate = format(currentDateTime, "yyyy-MM-dd");
-  const dayOff = isPiritubaDay || schedule.includes(formattedDate);
+  let extraDaysOff = [];
+  try {
+    extraDaysOff = await readDaysOff();
+  } catch (err) {
+    // Se o gist falhar, segue só com a escala 12x36.
+    console.error(err);
+  }
 
   return {
     props: {
-      schedule,
-      dayOff,
+      dayOff: isDayOff(today, extraDaysOff),
       hospital,
     },
   };
 }
 
-export default function Home({ schedule, dayOff, hospital }) {
+export default function Home({ dayOff, hospital }) {
   return (
     <BaseLayout>
       <Main dayOff={dayOff} hospital={hospital} />

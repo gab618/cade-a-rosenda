@@ -7,7 +7,6 @@
   },
   "dependencies": {
     "@serwist/next": "9.5.12",
-    "axios": "^0.21.4",
     "date-fns": "^2.23.0",
     "lottie-react": "3.1.2",
     "next": "16.3.8",
@@ -16,7 +15,6 @@
     "react-dom": "19.3.0",
     "react-icons": "^4.2.0",
     "react-is": "19.3.0",
-    "react-multi-date-picker": "^3.1.4",
     "react-toastify": "^8.0.2",
     "react-use": "17.6.0",
     "serwist": "9.5.12",
