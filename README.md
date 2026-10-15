@@ -1,84 +1,102 @@
-# Example app with styled-components
+# 🏥 Cadê a Rosenda?
 
-This example features how you use a different styling solution than [styled-jsx](https://github.com/vercel/styled-jsx) that also supports universal styles. That means we can serve the required styles for the first render within the HTML and then load the rest in the client. In this case we are using [styled-components](https://github.com/styled-components/styled-components).
+Aplicação PWA feita com carinho para acompanhar a escala de trabalho, folgas e viagens da Rosenda.
 
-For this purpose we are extending the `<Document />` and injecting the server side rendered styles into the `<head>`, and also adding the `babel-plugin-styled-components` (which is required for server side rendering). Additionally we set up a global [theme](https://www.styled-components.com/docs/advanced#theming) for styled-components using NextJS custom [`<App>`](https://nextjs.org/docs/advanced-features/custom-app) component.
+O app responde instantaneamente se hoje ela está no **plantão no hospital**, no **conforto do lar** ou visitando a Violeta em **Brasília**.
 
-## Preview
+---
 
-Preview the example live on [StackBlitz](http://stackblitz.com/):
+## ✨ Funcionalidades
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/vercel/next.js/tree/canary/examples/with-styled-components)
+- **Visão Inicial Clara**: Exibe na hora o status do dia com animações Lottie temáticas (plantão, folga/descanso ou viagem).
+- **Escala Automática 12x36**: Cálculo automático dos dias de plantão e descanso a partir da escala base.
+- **Calendário Mensal Visual**:
+  - ⬜ **Plantão**: Dias regulares de trabalho.
+  - 🔲 **Descanso**: Folgas da escala automática (12x36).
+  - 🟩 **Folga (`☀️`)**: Folgas extras negociadas ou trocas (marcação com 1 toque).
+  - 🟦 **Brasília (`✈️`)**: Dias de viagem em família, destacados com borda azul e aviso visual (`⚠️`) caso coincida com dia de plantão sem folga.
+- **Sincronização em Nuvem (GitHub Gist)**:
+  - As folgas e viagens ficam salvas em um Gist secreto pessoal.
+  - O app usa uma rota de API segura no Next.js — nenhum token do GitHub é exposto no navegador.
+  - Suporte a atualização manual (botão `↻`) com proteção contra perda de dados não sincronizados.
+- **Offline First (PWA)**:
+  - Cache local via `localStorage` com suporte offline e Service Worker via Serwist.
+  - Salva alterações locais mesmo sem internet e sincroniza automaticamente assim que a conexão volta.
+- **Controle de Acesso com PIN**:
+  - **PIN das Folgas (`/schedule`)**: Acesso simples e memorizado no dispositivo para ela marcar folgas com apenas um toque.
+  - **PIN de Admin (`/admin`)**: Área dedicada para planejar e marcar as viagens para Brasília.
 
-## Deploy your own
+---
 
-Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=next-example):
+## 🛠️ Tecnologias
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/git/external?repository-url=https://github.com/vercel/next.js/tree/canary/examples/with-styled-components&project-name=with-styled-components&repository-name=with-styled-components)
+- [Next.js](https://nextjs.org/) (Pages Router)
+- [React](https://react.dev/)
+- [styled-components](https://styled-components.com/)
+- [date-fns](https://date-fns.org/)
+- [Lottie React](https://github.com/Gamote/lottie-react)
+- [Serwist](https://serwist.pages.dev/) (PWA & Service Worker)
+- [GitHub Gist API](https://docs.github.com/en/rest/gists)
 
-## How to use
+---
 
-Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init) or [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/) to bootstrap the example:
+## 🚀 Como Executar Localmente
+
+### Pré-requisitos
+- Node.js 18+ (ou versão compatível)
+- Yarn ou npm
+
+### 1. Clonar e Instalar Dependências
 
 ```bash
-npx create-next-app --example with-styled-components with-styled-components-app
-# or
-yarn create next-app --example with-styled-components with-styled-components-app
+git clone https://github.com/gab618/cade-a-rosenda.git
+cd cade-a-rosenda
+yarn install
 ```
 
-Deploy it to the cloud with [Vercel](https://vercel.com/new?utm_source=github&utm_medium=readme&utm_campaign=next-example) ([Documentation](https://nextjs.org/docs/deployment)).
+### 2. Configurar Variáveis de Ambiente
 
-### Try it on CodeSandbox
+Crie um arquivo `.env.local` na raiz baseado no `.env.example`:
 
-[Open this example on CodeSandbox](https://codesandbox.io/s/github/vercel/next.js/tree/canary/examples/with-styled-components)
-
-### Notes
-
-When wrapping a [Link](https://nextjs.org/docs/api-reference/next/link) from `next/link` within a styled-component, the [as](https://styled-components.com/docs/api#as-polymorphic-prop) prop provided by `styled` will collide with the Link's `as` prop and cause styled-components to throw an `Invalid tag` error. To avoid this, you can either use the recommended [forwardedAs](https://styled-components.com/docs/api#forwardedas-prop) prop from styled-components or use a different named prop to pass to a `styled` Link.
-
-<details>
-<summary>Click to expand workaround example</summary>
-<br />
-
-**components/StyledLink.js**
-
-```javascript
-import Link from 'next/link'
-import styled from 'styled-components'
-
-const StyledLink = ({ as, children, className, href }) => (
-  <Link href={href} as={as} passHref>
-    <a className={className}>{children}</a>
-  </Link>
-)
-
-export default styled(StyledLink)`
-  color: #0075e0;
-  text-decoration: none;
-  transition: all 0.2s ease-in-out;
-
-  &:hover {
-    color: #40a9ff;
-  }
-
-  &:focus {
-    color: #40a9ff;
-    outline: none;
-    border: 0;
-  }
-`
+```env
+GIST_ID=seu_gist_id_aqui
+GITHUB_TOKEN=seu_github_personal_access_token_aqui
+SCHEDULE_PIN=1234
+ADMIN_PIN=5678
 ```
 
-**pages/index.js**
+> **Configuração do Gist:**
+> 1. Crie um Gist secreto no GitHub com um arquivo chamado `schedule.json`:
+>    ```json
+>    {
+>      "daysOff": [],
+>      "brasilia": []
+>    }
+>    ```
+> 2. O `GIST_ID` é o hash final da URL do seu Gist.
+> 3. O `GITHUB_TOKEN` precisa ter permissão de leitura/escrita no escopo `gist`.
 
-```javascript
-import StyledLink from '../components/StyledLink'
+### 3. Rodar em Desenvolvimento
 
-export default () => (
-  <StyledLink href="/post/[pid]" forwardedAs="/post/abc">
-    First post
-  </StyledLink>
-)
+```bash
+yarn dev
 ```
 
-</details>
+Acesse [http://localhost:3000](http://localhost:3000).
+
+---
+
+## 📱 Páginas & Rotas
+
+| Rota | Descrição |
+| :--- | :--- |
+| `/` | Tela principal informando onde a Rosenda está hoje |
+| `/schedule` | Calendário mensal para visualização e marcação de folgas |
+| `/admin` | Calendário administrativo para marcar viagens a Brasília (requer `ADMIN_PIN`) |
+| `/api/schedule` | Endpoint de leitura e atualização segura no Gist |
+
+---
+
+## 📄 Licença
+
+Projeto pessoal e afetivo desenvolvido por [Gabriel Rocha](https://github.com/gab618).
