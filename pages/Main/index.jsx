@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import styled from "styled-components";
 import nurse from "../../lotties/super-nurse-animation.json";
 import restingGirl from "../../lotties/resting.json";
+import plane from "../../lotties/plane.json";
 
 const Lottie = dynamic(
   () => import("lottie-react").then((module) => module.Lottie),
@@ -57,8 +58,7 @@ const STATES = {
   brasilia: {
     prefix: "Hoje Rosenda está em",
     place: "Brasília",
-    // TODO: trocar por lotties/brasilia.json quando tiver a animação.
-    animation: restingGirl,
+    animation: plane,
   },
 };
 
