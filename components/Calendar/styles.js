@@ -1,4 +1,4 @@
-import styled, { css } from "styled-components";
+import styled, { css, keyframes } from "styled-components";
 
 export const Container = styled.div`
   flex: 1;
@@ -120,6 +120,16 @@ export const Day = styled.button`
       cursor: default;
     `}
 
+  ${({ $brasilia }) =>
+    $brasilia &&
+    css`
+      border: 3px solid #1e90ff;
+    `}
+
+  &:disabled {
+    cursor: default;
+  }
+
   ${({ $past }) =>
     $past &&
     css`
@@ -175,13 +185,80 @@ export const Swatch = styled.i`
       background: rgba(255, 255, 255, 0.12);
       border: 1px dashed rgba(255, 255, 255, 0.6);
     `}
+  ${({ $kind }) =>
+    $kind === "brasilia" &&
+    css`
+      border: 3px solid #1e90ff;
+    `}
+`;
+
+export const Warning = styled.p`
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.2);
+`;
+
+export const CornerLink = styled.span`
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  padding: 16px;
+  font-size: 24px;
+  cursor: pointer;
+  color: #fff;
+  opacity: ${({ $faded }) => ($faded ? 0.35 : 1)};
+`;
+
+export const StatusRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 16px;
 `;
 
 export const Status = styled.p`
-  margin-top: 16px;
   font-size: 13px;
   min-height: 18px;
   opacity: 0.9;
+`;
+
+const spin = keyframes`
+  to {
+    transform: rotate(360deg);
+  }
+`;
+
+export const RefreshButton = styled.button`
+  color: #fff;
+  font-size: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+
+  svg {
+    ${({ $spinning }) =>
+      $spinning &&
+      css`
+        animation: ${spin} 0.8s linear infinite;
+      `}
+  }
 `;
 
 export const PinForm = styled.form`

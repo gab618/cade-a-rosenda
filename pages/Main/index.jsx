@@ -47,13 +47,30 @@ const Content = styled.header`
   }
 `;
 
-export default function Main({ hospital, dayOff }) {
+const STATES = {
+  work: { prefix: "Hoje Rosenda está no", place: null, animation: nurse },
+  off: {
+    prefix: "Hoje Rosenda está no",
+    place: "conforto do lar",
+    animation: restingGirl,
+  },
+  brasilia: {
+    prefix: "Hoje Rosenda está em",
+    place: "Brasília",
+    // TODO: trocar por lotties/brasilia.json quando tiver a animação.
+    animation: restingGirl,
+  },
+};
+
+export default function Main({ hospital, status = "work" }) {
+  const state = STATES[status] || STATES.work;
   return (
     <Content>
-      <h2>Hoje Rosenda está no</h2>
-      <h1>{dayOff ? "conforto do lar" : hospital}</h1>
+      <h2>{state.prefix}</h2>
+      <h1>{state.place || hospital}</h1>
       <Lottie
-        src={dayOff ? restingGirl : nurse}
+        key={status}
+        src={state.animation}
         loop
         autoplay
         speed={0.6}

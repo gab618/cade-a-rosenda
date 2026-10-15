@@ -1,15 +1,19 @@
 import BaseLayout from "../components/BaseLayout";
 import Main from "./Main";
-import { readDaysOff } from "../lib/gist";
-import { isDayOff, todayKeyInSaoPaulo } from "../lib/schedule";
+import { readSchedule } from "../lib/gist";
+import {
+  getDayStatus,
+  sanitizeSchedule,
+  todayKeyInSaoPaulo,
+} from "../lib/schedule";
 
 export async function getServerSideProps() {
   const hospital = "Pirituba";
   const today = todayKeyInSaoPaulo();
 
-  let extraDaysOff = [];
+  let schedule = sanitizeSchedule({});
   try {
-    extraDaysOff = await readDaysOff();
+    schedule = await readSchedule();
   } catch (err) {
     // Se o gist falhar, segue só com a escala 12x36.
     console.error(err);
@@ -17,16 +21,16 @@ export async function getServerSideProps() {
 
   return {
     props: {
-      dayOff: isDayOff(today, extraDaysOff),
+      status: getDayStatus(today, schedule),
       hospital,
     },
   };
 }
 
-export default function Home({ dayOff, hospital }) {
+export default function Home({ status, hospital }) {
   return (
     <BaseLayout>
-      <Main dayOff={dayOff} hospital={hospital} />
+      <Main status={status} hospital={hospital} />
     </BaseLayout>
   );
 }
