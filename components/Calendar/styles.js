@@ -117,7 +117,23 @@ export const Day = styled.button`
       background: rgba(255, 255, 255, 0.12);
       border: 1px dashed rgba(255, 255, 255, 0.5);
       color: rgba(255, 255, 255, 0.75);
-      cursor: default;
+      cursor: pointer;
+      &:active {
+        transform: scale(0.92);
+      }
+    `}
+
+  ${({ $kind }) =>
+    $kind === "extraShift" &&
+    css`
+      background: #c1121f;
+      color: #fff;
+      cursor: pointer;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      &:active {
+        transform: scale(0.92);
+      }
     `}
 
   ${({ $brasilia }) =>
@@ -184,6 +200,12 @@ export const Swatch = styled.i`
     css`
       background: rgba(255, 255, 255, 0.12);
       border: 1px dashed rgba(255, 255, 255, 0.6);
+    `}
+  ${({ $kind }) =>
+    $kind === "extraShift" &&
+    css`
+      background: #c1121f;
+      border: 1px solid #fff;
     `}
   ${({ $kind }) =>
     $kind === "brasilia" &&
