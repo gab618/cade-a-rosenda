@@ -14,6 +14,7 @@ O app responde instantaneamente se hoje ela está no **plantão no hospital**, n
   - ⬜ **Plantão**: Dias regulares de trabalho.
   - 🔲 **Descanso**: Folgas da escala automática (12x36).
   - 🟩 **Folga (`☀️`)**: Folgas extras negociadas ou trocas (marcação com 1 toque).
+  - 🟥 **Plantão extra (`🏥`)**: Plantões feitos em dias de descanso (toque num dia de descanso).
   - 🟦 **Brasília (`✈️`)**: Dias de viagem em família, destacados com borda azul e aviso visual (`⚠️`) caso coincida com dia de plantão sem folga.
 - **Sincronização em Nuvem (GitHub Gist)**:
   - As folgas e viagens ficam salvas em um Gist secreto pessoal.
@@ -70,6 +71,7 @@ ADMIN_PIN=5678
 >    ```json
 >    {
 >      "daysOff": [],
+>      "extraShifts": [],
 >      "brasilia": []
 >    }
 >    ```

@@ -19,8 +19,8 @@ import {
   MdEvent,
 } from "react-icons/md";
 import {
+  getDayKind,
   isBrasiliaConflict,
-  isScheduledOff,
   toDateKey,
   todayKeyInSaoPaulo,
 } from "../../lib/schedule";
@@ -49,16 +49,18 @@ import {
 const WEEK_DAYS = ["D", "S", "T", "Q", "Q", "S", "S"];
 
 const MODES = {
-  // Tela da Rosenda: marca folgas extras.
+  // Tela da Rosenda: marca folgas e plantões extras.
   daysOff: {
+    fields: ["daysOff", "extraShifts"],
     pinKey: "rosenda:pin",
     title: "Folgas da Rosenda",
-    hint: "Toque num dia de plantão para marcar folga",
-    needPin: "Digite o PIN para salvar as folgas",
+    hint: "Toque num plantão para marcar folga, ou num descanso para marcar plantão extra",
+    needPin: "Digite o PIN para salvar as alterações",
     requirePinUpfront: false,
   },
   // Tela de admin: marca dias em Brasília.
   brasilia: {
+    fields: ["brasilia"],
     pinKey: "rosenda:adminPin",
     title: "Dias em Brasília",
     hint: "Toque num dia para marcar/desmarcar Brasília",
@@ -78,12 +80,25 @@ const STATUS_TEXT = {
   error: "Erro ao salvar — tentando de novo depois",
 };
 
-const KIND_LABEL = { work: "plantão", extra: "folga", scheduled: "descanso" };
+const KIND_LABEL = {
+  work: "plantão",
+  extra: "folga",
+  scheduled: "descanso",
+  extraShift: "plantão extra",
+};
+
+// Na tela da Rosenda, o campo alterado depende do tipo do dia.
+const FIELD_BY_KIND = {
+  work: "daysOff",
+  extra: "daysOff",
+  scheduled: "extraShifts",
+  extraShift: "extraShifts",
+};
 
 function Calendar({ mode = "daysOff" }) {
   const config = MODES[mode];
   const { schedule, status, hasPin, toggle, pull, hasPending, submitPin } =
-    useSchedule(mode, config.pinKey);
+    useSchedule(config.fields, config.pinKey);
 
   const [today, setToday] = useState(null);
   const [month, setMonth] = useState(null);
@@ -171,15 +186,10 @@ function Calendar({ mode = "daysOff" }) {
         {cells.map((date, i) => {
           if (!date) return <Empty key={`empty-${i}`} />;
           const key = toDateKey(date);
-          const kind = isScheduledOff(key)
-            ? "scheduled"
-            : schedule.daysOff.includes(key)
-              ? "extra"
-              : "work";
+          const kind = getDayKind(key, schedule);
           const brasilia = schedule.brasilia.includes(key);
-          const conflict = brasilia && kind === "work";
-          const disabled =
-            locked || (mode === "daysOff" && kind === "scheduled");
+          const conflict = isBrasiliaConflict(key, schedule);
+          const field = mode === "brasilia" ? "brasilia" : FIELD_BY_KIND[kind];
 
           return (
             <Day
@@ -189,9 +199,13 @@ function Calendar({ mode = "daysOff" }) {
               $brasilia={brasilia}
               $today={key === today}
               $past={key < today}
-              disabled={disabled}
-              onClick={() => toggle(key)}
-              aria-pressed={mode === "brasilia" ? brasilia : kind === "extra"}
+              disabled={locked}
+              onClick={() => toggle(field, key)}
+              aria-pressed={
+                mode === "brasilia"
+                  ? brasilia
+                  : kind === "extra" || kind === "extraShift"
+              }
               aria-label={`${format(date, "d 'de' MMMM", { locale: ptBR })}: ${
                 KIND_LABEL[kind]
               }${brasilia ? ", Brasília" : ""}${
@@ -199,9 +213,10 @@ function Calendar({ mode = "daysOff" }) {
               }`}
             >
               {date.getDate()}
-              {(kind === "extra" || brasilia) && (
+              {(kind === "extra" || kind === "extraShift" || brasilia) && (
                 <small>
                   {kind === "extra" && "☀️"}
+                  {kind === "extraShift" && "🏥"}
                   {brasilia && "✈️"}
                   {conflict && "⚠️"}
                 </small>
@@ -220,6 +235,9 @@ function Calendar({ mode = "daysOff" }) {
         </span>
         <span>
           <Swatch $kind="extra" /> Folga
+        </span>
+        <span>
+          <Swatch $kind="extraShift" /> Plantão extra
         </span>
         <span>
           <Swatch $kind="brasilia" /> Brasília
